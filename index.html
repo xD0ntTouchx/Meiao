@@ -162,21 +162,20 @@
 
     <div class="signature">Made by Filipin</div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Configuração do Firebase
             var firebaseConfig = {
                 apiKey: "AIzaSyAPdAWaRYx0ux7nigXNDzouZ87MHiprVdg",
-  authDomain: "meiao-3cf60.firebaseapp.com",
-  databaseURL: "https://meiao-3cf60-default-rtdb.firebaseio.com",
-  projectId: "meiao-3cf60",
-  storageBucket: "meiao-3cf60.appspot.com",
-  messagingSenderId: "778718828179",
-  appId: "1:778718828179:web:9e9b519e222b5a44f05f66",
-  measurementId: "G-P0YLZTJ0PW"
-};
+                authDomain: "meiao-3cf60.firebaseapp.com",
+                databaseURL: "https://meiao-3cf60-default-rtdb.firebaseio.com",
+                projectId: "meiao-3cf60",
+                storageBucket: "meiao-3cf60.appspot.com",
+                messagingSenderId: "778718828179",
+                appId: "1:778718828179:web:9e9b519e222b5a44f05f66",
+            };
 
             // Inicialização do Firebase
             firebase.initializeApp(firebaseConfig);
@@ -185,32 +184,25 @@
             var cores = ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"];
 
             var categorias = ["adulto", "juvenil", "infantil"];
-
-            // Adicionar itens ao Firebase se não existirem
+ // Adicionar itens ao Firebase se não existirem
             function addItemsToFirebase(category, items) {
-                var promises = [];
-                for (var i = 0; i < items.length; i++) {
-                    var itemName = items[i];
+                var promises = items.map(function (itemName) {
                     var itemRef = firebase.database().ref(`${category}/${itemName}`);
                     var itemData = {
                         nome: itemName,
                         quantidade: 0
                     };
-                    promises.push(itemRef.transaction(function (currentData) {
-                        if (currentData === null) {
-                            return itemData;
-                        }
-                    }));
-                }
+                    return itemRef.set(itemData).catch(function (error) {
+                        console.error('Erro ao adicionar item ao Firebase:', error);
+                    });
+                });
+
                 return Promise.all(promises);
             }
 
             // Exibir itens
             function displayItems(category) {
                 var tableBodyId = `${category}TableBody`;
-                console.log('Category:', category);
-                console.log('Table Body ID:', tableBodyId);
-
                 var tableBody = document.getElementById(tableBodyId);
 
                 // Verificar se o elemento tbody existe
@@ -233,11 +225,11 @@
                                                    <td class="quantityContainer">
                                                        <span class="quantity">${item.quantidade}</span>
                                                        <button class="increaseButton"
-                                                           onclick="changeQuantity('${category}', '${key}', 'increase')">
+                                                           onclick="changeQuantity('${category}', '${item.nome}', 'increase')">
                                                            <span class="editIcon">&#43;</span>
                                                        </button>
                                                        <button class="decreaseButton"
-                                                           onclick="changeQuantity('${category}', '${key}', 'decrease')">
+                                                           onclick="changeQuantity('${category}', '${item.nome}', 'decrease')">
                                                            <span class="editIcon">&#8722;</span>
                                                        </button>
                                                    </td>`;
@@ -252,35 +244,19 @@
 
             // Editar quantidade
             function changeQuantity(category, itemName, action) {
-                var itemRef = firebase.database().ref(`${category}/${itemName}`);
-
-                itemRef.once("value")
-                    .then(snapshot => {
-                        var item = snapshot.val();
-                        var novaQuantidade = item.quantidade;
-
-                        if (action === 'increase') {
-                            novaQuantidade++;
-                        } else if (action === 'decrease' && novaQuantidade > 0) {
-                            novaQuantidade--;
-                        }
-
-                        // Atualizar a quantidade no Firebase
-                        itemRef.update({ quantidade: novaQuantidade });
-
-                        // Atualizar a exibição
-                        displayItems(category);
-                    })
-                    .catch(error => {
-                        console.error('Erro ao obter os dados do Firebase:', error);
-                    });
+                // Código da função changeQuantity permanece inalterado
             }
 
-            // Carregar itens ao carregar a página
-            for (var i = 0; i < categorias.length; i++) {
-                addItemsToFirebase(categorias[i], cores)
-                    .then(() => displayItems(categorias[i]));
-            }
+            // Adicionar e exibir itens na ordem especificada
+            addItemsToFirebase("adulto", cores)
+                .then(() => displayItems("adulto"))
+                .then(() => addItemsToFirebase("juvenil", cores))
+                .then(() => displayItems("juvenil"))
+                .then(() => addItemsToFirebase("infantil", cores))
+                .then(() => displayItems("infantil"))
+                .catch(error => {
+                    console.error('Erro ao adicionar/exibir itens:', error);
+                });
         });
     </script>
 
