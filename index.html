@@ -177,16 +177,17 @@
                 appId: "1:778718828179:web:9e9b519e222b5a44f05f66",
             };
 
-            // Inicialização do Firebase
+           // Inicialização do Firebase
             firebase.initializeApp(firebaseConfig);
 
             // Itens predefinidos
             var cores = ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"];
 
             var categorias = ["adulto", "juvenil", "infantil"];
- // Adicionar itens ao Firebase se não existirem
+
+            // Adicionar itens ao Firebase se não existirem
             function addItemsToFirebase(category, items) {
-                var promises = items.map(function (itemName) {
+                var promises = items.map(function (itemName, index) {
                     var itemRef = firebase.database().ref(`${category}/${itemName}`);
                     var itemData = {
                         nome: itemName,
@@ -201,7 +202,7 @@
             }
 
             // Exibir itens
-            function displayItems(category) {
+            function displayItems(category, itemOrder) {
                 var tableBodyId = `${category}TableBody`;
                 var tableBody = document.getElementById(tableBodyId);
 
@@ -218,23 +219,25 @@
                         var items = snapshot.val();
 
                         if (items) {
-                            for (var key in items) {
-                                var item = items[key];
-                                var newRow = document.createElement("tr");
-                                newRow.innerHTML = `<td>${item.nome}</td>
-                                                   <td class="quantityContainer">
-                                                       <span class="quantity">${item.quantidade}</span>
-                                                       <button class="increaseButton"
-                                                           onclick="changeQuantity('${category}', '${item.nome}', 'increase')">
-                                                           <span class="editIcon">&#43;</span>
-                                                       </button>
-                                                       <button class="decreaseButton"
-                                                           onclick="changeQuantity('${category}', '${item.nome}', 'decrease')">
-                                                           <span class="editIcon">&#8722;</span>
-                                                       </button>
-                                                   </td>`;
-                                tableBody.appendChild(newRow);
-                            }
+                            itemOrder.forEach(function (itemName) {
+                                if (items.hasOwnProperty(itemName)) {
+                                    var item = items[itemName];
+                                    var newRow = document.createElement("tr");
+                                    newRow.innerHTML = `<td>${item.nome}</td>
+                                                       <td class="quantityContainer">
+                                                           <span class="quantity">${item.quantidade}</span>
+                                                           <button class="increaseButton"
+                                                               onclick="changeQuantity('${category}', '${item.nome}', 'increase')">
+                                                               <span class="editIcon">&#43;</span>
+                                                           </button>
+                                                           <button class="decreaseButton"
+                                                               onclick="changeQuantity('${category}', '${item.nome}', 'decrease')">
+                                                               <span class="editIcon">&#8722;</span>
+                                                           </button>
+                                                       </td>`;
+                                    tableBody.appendChild(newRow);
+                                }
+                            });
                         }
                     })
                     .catch(error => {
@@ -247,13 +250,13 @@
                 // Código da função changeQuantity permanece inalterado
             }
 
-            // Adicionar e exibir itens na ordem especificada
+             // Adicionar e exibir itens na ordem especificada
             addItemsToFirebase("adulto", cores)
-                .then(() => displayItems("adulto"))
+                .then(() => displayItems("adulto", ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]))
                 .then(() => addItemsToFirebase("juvenil", cores))
-                .then(() => displayItems("juvenil"))
+                .then(() => displayItems("juvenil", ["Vermelho", "Branco", "Azul Marinho", "Preto", "Azul Royal", "Amarelo", "Verde", "Laranja"]))
                 .then(() => addItemsToFirebase("infantil", cores))
-                .then(() => displayItems("infantil"))
+                .then(() => displayItems("infantil", ["Azul Marinho", "Branco", "Preto", "Verde", "Azul Royal", "Vermelho", "Amarelo", "Laranja"]))
                 .catch(error => {
                     console.error('Erro ao adicionar/exibir itens:', error);
                 });
