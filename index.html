@@ -78,8 +78,14 @@
         }
 
         .quantityInput {
-            width: 60px; /* Ajuste o tamanho conforme necessário */
+            width: 50px;
             padding: 4px;
+            box-sizing: border-box;
+        }
+
+        .editIcon {
+            font-size: 16px;
+            color: #000;
         }
 
         .signature {
@@ -194,7 +200,7 @@
 
                 tableBody.innerHTML = "";
 
-                firebase.database().ref(category).once("value")
+                return firebase.database().ref(category).once("value")
                     .then(snapshot => {
                         var items = snapshot.val();
 
@@ -205,7 +211,7 @@
                                     var newRow = document.createElement("tr");
                                     newRow.innerHTML = `<td>${item.nome}</td>
                                                        <td class="quantityContainer">
-                                                           <input type="number" class="quantityInput" value="${item.quantidade}" onchange="changeQuantity('${category}', '${item.nome}', this.value)">
+                                                           <input type="number" class="quantityInput" value="${item.quantidade}" onchange="updateQuantity('${category}', '${item.nome}', this.value)">
                                                        </td>`;
                                     tableBody.appendChild(newRow);
                                 }
@@ -217,21 +223,21 @@
                     });
             }
 
-            // Editar quantidade
-            function changeQuantity(category, itemName, newQuantity) {
-                var itemRef = firebase.database().ref(`${category}/${itemName}`);
-                itemRef.update({ quantidade: parseInt(newQuantity) || 0 });
-                // Atualizar a exibição
-                displayItems(category, ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]);
+            // Atualizar quantidade
+            window.updateQuantity = function (category, itemName, newQuantity) {
+                var itemRef = firebase.database().ref(`${category}/${itemName}/quantidade`);
+                itemRef.set(parseInt(newQuantity)).catch(function (error) {
+                    console.error('Erro ao atualizar quantidade no Firebase:', error);
+                });
             }
 
             // Adicionar e exibir itens na ordem especificada
             addItemsToFirebase("adulto", cores)
                 .then(() => displayItems("adulto", ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]))
                 .then(() => addItemsToFirebase("juvenil", cores))
-                .then(() => displayItems("juvenil", ["Vermelho", "Branco", "Azul Marinho", "Preto", "Azul Royal", "Amarelo", "Verde", "Laranja"]))
+                .then(() => displayItems("juvenil", ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]))
                 .then(() => addItemsToFirebase("infantil", cores))
-                .then(() => displayItems("infantil", ["Azul Marinho", "Branco", "Preto", "Verde", "Azul Royal", "Vermelho", "Amarelo", "Laranja"]))
+                .then(() => displayItems("infantil", ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]))
                 .catch(error => {
                     console.error('Erro ao adicionar/exibir itens:', error);
                 });
