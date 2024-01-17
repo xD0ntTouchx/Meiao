@@ -175,11 +175,16 @@
             function addItemsToFirebase(category, items) {
                 var promises = items.map(function (itemName, index) {
                     var itemRef = firebase.database().ref(`${category}/${itemName}`);
-                    var itemData = {
-                        nome: itemName,
-                        quantidade: 0
-                    };
-                    return itemRef.set(itemData).catch(function (error) {
+                    // Adiciona apenas se não existir
+                    return itemRef.once("value").then(snapshot => {
+                        if (!snapshot.exists()) {
+                            var itemData = {
+                                nome: itemName,
+                                quantidade: 0
+                            };
+                            return itemRef.set(itemData);
+                        }
+                    }).catch(function (error) {
                         console.error('Erro ao adicionar item ao Firebase:', error);
                     });
                 });
