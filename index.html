@@ -72,34 +72,14 @@
             color: white;
         }
 
-        .increaseButton,
-        .decreaseButton {
-            background-color: transparent;
-            border: none;
-            padding: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin: 2px;
-        }
-
-        .increaseButton:hover,
-        .decreaseButton:hover {
-            background-color: #e5e5e5;
-        }
-
         .quantityContainer {
             display: flex;
             align-items: center;
         }
 
-        .quantity {
-            margin-right: 5px;
-            font-weight: bold;
-        }
-
-        .editIcon {
-            font-size: 16px;
-            color: #000;
+        .quantityInput {
+            width: 60px; /* Ajuste o tamanho conforme necessário */
+            padding: 4px;
         }
 
         .signature {
@@ -162,7 +142,7 @@
 
     <div class="signature">Made by Filipin</div>
 
-     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -177,7 +157,7 @@
                 appId: "1:778718828179:web:9e9b519e222b5a44f05f66",
             };
 
-           // Inicialização do Firebase
+            // Inicialização do Firebase
             firebase.initializeApp(firebaseConfig);
 
             // Itens predefinidos
@@ -225,15 +205,7 @@
                                     var newRow = document.createElement("tr");
                                     newRow.innerHTML = `<td>${item.nome}</td>
                                                        <td class="quantityContainer">
-                                                           <span class="quantity">${item.quantidade}</span>
-                                                           <button class="increaseButton"
-                                                               onclick="changeQuantity('${category}', '${item.nome}', 'increase')">
-                                                               <span class="editIcon">&#43;</span>
-                                                           </button>
-                                                           <button class="decreaseButton"
-                                                               onclick="changeQuantity('${category}', '${item.nome}', 'decrease')">
-                                                               <span class="editIcon">&#8722;</span>
-                                                           </button>
+                                                           <input type="number" class="quantityInput" value="${item.quantidade}" onchange="changeQuantity('${category}', '${item.nome}', this.value)">
                                                        </td>`;
                                     tableBody.appendChild(newRow);
                                 }
@@ -246,11 +218,14 @@
             }
 
             // Editar quantidade
-            function changeQuantity(category, itemName, action) {
-                // Código da função changeQuantity permanece inalterado
+            function changeQuantity(category, itemName, newQuantity) {
+                var itemRef = firebase.database().ref(`${category}/${itemName}`);
+                itemRef.update({ quantidade: parseInt(newQuantity) || 0 });
+                // Atualizar a exibição
+                displayItems(category, ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]);
             }
 
-             // Adicionar e exibir itens na ordem especificada
+            // Adicionar e exibir itens na ordem especificada
             addItemsToFirebase("adulto", cores)
                 .then(() => displayItems("adulto", ["Preto", "Branco", "Azul Royal", "Azul Marinho", "Vermelho", "Verde", "Amarelo", "Laranja"]))
                 .then(() => addItemsToFirebase("juvenil", cores))
